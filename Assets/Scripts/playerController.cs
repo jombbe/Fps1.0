@@ -2,29 +2,45 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+[RequireComponent(typeof(CharacterController))]
 public class playerController : MonoBehaviour
 {
     public float moveSpeed = 2.0f;
-    public float rotateSpeed = 2.0f;
+    public float Gravity = -9.81f;
+    public float jumpHeight = 3.0f;
 
-    // Start is called before the first frame update
-    void Start()
-    {
-        Rigidbody rb = GetComponent<Rigidbody>();
-        CharacterController characterControl = GetComponent<CharacterController>();
-    }
+    public CharacterController characterController;
+    public Transform groundCheck;
+    public float groundDistance = 0.4f;
+    public LayerMask groundMask;
+
+    Vector3 velocity;
+    bool isGrounded;
+
 
     // Update is called once per frame
     void Update()
     {
-        if (Input.GetKey("W"))
-        {
-            walk();
-        }
-    }
 
-    public void walk()
-    {
-        
+        isGrounded = Physics.CheckSphere(groundCheck.position, groundDistance, groundMask);
+
+        if(isGrounded && velocity.y < 0)
+        {
+            velocity.y = -2f;
+        }
+
+        float x = Input.GetAxis("Horizontal");
+        float z = Input.GetAxis("Vertical");
+
+        Vector3 move = transform.right * x + transform.forward * z;
+        characterController.Move(move * moveSpeed * Time.deltaTime);
+
+        if(Input.GetButtonDown("Jump") && isGrounded)
+        {
+            velocity.y = Mathf.Sqrt(jumpHeight * -2f * Gravity);
+        }
+
+        velocity.y += Gravity * Time.deltaTime;
+        characterController.Move(velocity * Time.deltaTime);
     }
 }
